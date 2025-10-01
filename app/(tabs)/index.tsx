@@ -7,26 +7,38 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const [receivedToken, setReceivedToken] = useState<string | null>(null);
+  const [receivedKey, setReceivedKey] = useState<string | null>(null);
   
-  // 전역 파라미터에서 토큰 가져오기
+  // 전역 파라미터에서 토큰과 키 가져오기
   const searchParams = useGlobalSearchParams();
   const verifiedToken = Array.isArray(searchParams.verified_token) 
     ? searchParams.verified_token[0] 
     : searchParams.verified_token;
+  const key = Array.isArray(searchParams.key) 
+    ? searchParams.key[0] 
+    : searchParams.key;
 
-  // 토큰 변경 감지
+  // 토큰과 키 변경 감지
   useEffect(() => {
     if (verifiedToken && verifiedToken !== receivedToken) {
       console.log('🎯 토큰 수신됨:', verifiedToken);
+      if (key) {
+        console.log('🗝️  키 수신됨:', key);
+      }
       setReceivedToken(verifiedToken);
+      setReceivedKey(key || null);
+      
+      const message = key 
+        ? `토큰과 키가 성공적으로 받아졌습니다!\n\n토큰: ${verifiedToken.substring(0, 50)}...\n키: ${key}`
+        : `토큰이 성공적으로 받아졌습니다!\n\n토큰: ${verifiedToken.substring(0, 50)}...`;
       
       Alert.alert(
-        '🎊 토큰 수신 완료!',
-        `토큰이 성공적으로 받아졌습니다!\n\n토큰: ${verifiedToken.substring(0, 50)}...`,
+        '🎊 수신 완료!',
+        message,
         [{ text: '확인', style: 'default' }]
       );
     }
-  }, [verifiedToken, receivedToken]);
+  }, [verifiedToken, key, receivedToken]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -53,6 +65,12 @@ export default function HomeScreen() {
           <ThemedView style={styles.tokenContainer}>
             <ThemedText style={styles.tokenLabel}>🔑 받은 토큰:</ThemedText>
             <ThemedText style={styles.tokenValue}>{receivedToken}</ThemedText>
+            {receivedKey && (
+              <>
+                <ThemedText style={[styles.tokenLabel, { marginTop: 12 }]}>🗝️ 받은 키:</ThemedText>
+                <ThemedText style={styles.tokenValue}>{receivedKey}</ThemedText>
+              </>
+            )}
           </ThemedView>
         )}
       </ThemedView>
