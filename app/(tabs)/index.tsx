@@ -109,7 +109,7 @@ export default function HomeScreen() {
                    <ThemedText style={styles.verifierTitle}>🔐 토큰 검증 (간소화 버전)</ThemedText>
                    <SimpleTokenVerifier
                      token={receivedToken}
-                     tokenKey={receivedKey || 'default-key'} // 토큰과 키는 한 쌍이므로 필수
+                     publicKey={receivedKey || 'default-key'} // 토큰과 키는 한 쌍이므로 필수
                      onVerificationComplete={(result) => {
                        addDebugLog('🔍 검증 결과: ' + (result.isValid ? '성공' : '실패'));
                        if (!result.isValid) {

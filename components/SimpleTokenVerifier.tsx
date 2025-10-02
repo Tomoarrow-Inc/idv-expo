@@ -4,23 +4,23 @@ import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 
 interface SimpleTokenVerifierProps {
   token: string;
-  tokenKey: string; // key는 React 예약어이므로 tokenKey로 변경
+  publicKey: string; // key는 React 예약어이므로 publicKey로 변경
   onVerificationComplete?: (result: TokenValidationResult) => void;
 }
 
 export default function SimpleTokenVerifier({ 
   token, 
-  tokenKey, 
+  publicKey, 
   onVerificationComplete 
 }: SimpleTokenVerifierProps) {
   const [verificationResult, setVerificationResult] = useState<TokenValidationResult | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
-    if (token && tokenKey) {
+    if (token && publicKey) {
       verifyToken();
     }
-  }, [token, tokenKey]);
+  }, [token, publicKey]);
 
   const verifyToken = async () => {
     setIsVerifying(true);
@@ -29,10 +29,10 @@ export default function SimpleTokenVerifier({
       console.log('========================================');
       console.log('🚀 SimpleTokenVerifier 시작');
       console.log('🔑 토큰:', token.substring(0, 50) + '...');
-      console.log('🗝️  키:', tokenKey.substring(0, 50) + '...');
+      console.log('🗝️  키:', publicKey.substring(0, 50) + '...');
       console.log('========================================');
       
-      const result = await validateToken(token, tokenKey);
+      const result = await validateToken(token, publicKey);
       
       console.log('========================================');
       console.log('✅ 검증 완료:', result.isValid ? '성공' : '실패');
