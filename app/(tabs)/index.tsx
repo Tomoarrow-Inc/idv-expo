@@ -1,8 +1,10 @@
+import SimpleTokenVerifier from '@/components/SimpleTokenVerifier';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { USER_CONFIG } from '@/utils/tokenConfig';
 import { useGlobalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, StyleSheet } from 'react-native';
+import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -42,10 +44,28 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ThemedView style={styles.placeholder}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
+      >
+        <ThemedView style={styles.placeholder}>
         <ThemedText style={styles.placeholderText}>
           딥링크 토큰 수신 테스트 앱
         </ThemedText>
+        
+        {/* 하드코딩된 사용자 정보 표시 */}
+        <ThemedView style={styles.userInfoContainer}>
+          <ThemedText style={styles.userInfoTitle}>👤 등록된 사용자 정보</ThemedText>
+          <ThemedView style={styles.userInfoRow}>
+            <ThemedText style={styles.userInfoLabel}>사용자 ID:</ThemedText>
+            <ThemedText style={styles.userInfoValue}>{USER_CONFIG.userId}</ThemedText>
+          </ThemedView>
+          <ThemedView style={styles.userInfoRow}>
+            <ThemedText style={styles.userInfoLabel}>사용자명:</ThemedText>
+            <ThemedText style={styles.userInfoValue}>{USER_CONFIG.userName}</ThemedText>
+          </ThemedView>
+        </ThemedView>
         
         {/* 토큰 수신 상태 표시 */}
         <ThemedView style={[styles.statusContainer, receivedToken ? styles.statusSuccess : styles.statusWaiting]}>
@@ -73,7 +93,23 @@ export default function HomeScreen() {
             )}
           </ThemedView>
         )}
-      </ThemedView>
+
+        {/* 토큰 검증 컴포넌트 */}
+        {receivedToken && (
+          <ThemedView style={styles.verifierContainer}>
+            <ThemedText style={styles.verifierTitle}>🔐 토큰 검증 (간소화 버전)</ThemedText>
+            <SimpleTokenVerifier 
+              token={receivedToken}
+              tokenKey={receivedKey || 'default-key'} // 토큰과 키는 한 쌍이므로 필수
+              onVerificationComplete={(result) => {
+                console.log('🔍 검증 결과:', result);
+              }}
+            />
+          </ThemedView>
+        )}
+
+        </ThemedView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -83,12 +119,19 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: '#fff' 
   },
-  placeholder: {
+  scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20, // 하단 여백 추가
+  },
+  placeholder: {
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
     backgroundColor: '#fff',
+    minHeight: '100%', // 최소 높이 설정
   },
   placeholderText: {
     fontSize: 18,
@@ -149,5 +192,60 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 1,
     borderColor: '#ddd',
+  },
+  verifierContainer: {
+    marginTop: 20,
+    padding: 16,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+    width: '100%',
+  },
+  verifierTitle: {
+    fontSize: 16,
+    color: '#495057',
+    fontWeight: 'bold',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  userInfoContainer: {
+    marginTop: 20,
+    marginBottom: 20,
+    padding: 16,
+    backgroundColor: '#e3f2fd',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#2196f3',
+    width: '100%',
+  },
+  userInfoTitle: {
+    fontSize: 14,
+    color: '#1976d2',
+    fontWeight: 'bold',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  userInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: '#fff',
+    borderRadius: 4,
+  },
+  userInfoLabel: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: 'bold',
+  },
+  userInfoValue: {
+    fontSize: 12,
+    color: '#333',
+    fontFamily: 'monospace',
+    flex: 1,
+    textAlign: 'right',
   },
 });
