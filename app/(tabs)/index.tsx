@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function HomeScreen() {
   const [receivedToken, setReceivedToken] = useState<string | null>(null);
   const [receivedKey, setReceivedKey] = useState<string | null>(null);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
   
   // 전역 파라미터에서 토큰과 키 가져오기
   const searchParams = useGlobalSearchParams();
@@ -21,19 +22,27 @@ export default function HomeScreen() {
     : searchParams.key;
 
   // 토큰과 키 변경 감지
+  // 디버그 로그 추가 함수
+  const addDebugLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    const logMessage = `[${timestamp}] ${message}`;
+    setDebugLogs(prev => [...prev.slice(-9), logMessage]); // 최근 10개만 유지
+    console.log(logMessage);
+  };
+
   useEffect(() => {
     if (verifiedToken && verifiedToken !== receivedToken) {
-      console.log('🎯 토큰 수신됨:', verifiedToken);
+      addDebugLog('🎯 토큰 수신됨: ' + verifiedToken.substring(0, 50) + '...');
       if (key) {
-        console.log('🗝️  키 수신됨:', key);
+        addDebugLog('🗝️  키 수신됨: ' + key.substring(0, 50) + '...');
       }
       setReceivedToken(verifiedToken);
       setReceivedKey(key || null);
-      
-      const message = key 
+
+      const message = key
         ? `토큰과 키가 성공적으로 받아졌습니다!\n\n토큰: ${verifiedToken.substring(0, 50)}...\n키: ${key}`
         : `토큰이 성공적으로 받아졌습니다!\n\n토큰: ${verifiedToken.substring(0, 50)}...`;
-      
+
       Alert.alert(
         '🎊 수신 완료!',
         message,
@@ -94,19 +103,34 @@ export default function HomeScreen() {
           </ThemedView>
         )}
 
-        {/* 토큰 검증 컴포넌트 */}
-        {receivedToken && (
-          <ThemedView style={styles.verifierContainer}>
-            <ThemedText style={styles.verifierTitle}>🔐 토큰 검증 (간소화 버전)</ThemedText>
-            <SimpleTokenVerifier 
-              token={receivedToken}
-              tokenKey={receivedKey || 'default-key'} // 토큰과 키는 한 쌍이므로 필수
-              onVerificationComplete={(result) => {
-                console.log('🔍 검증 결과:', result);
-              }}
-            />
-          </ThemedView>
-        )}
+               {/* 토큰 검증 컴포넌트 */}
+               {receivedToken && (
+                 <ThemedView style={styles.verifierContainer}>
+                   <ThemedText style={styles.verifierTitle}>🔐 토큰 검증 (간소화 버전)</ThemedText>
+                   <SimpleTokenVerifier
+                     token={receivedToken}
+                     tokenKey={receivedKey || 'default-key'} // 토큰과 키는 한 쌍이므로 필수
+                     onVerificationComplete={(result) => {
+                       addDebugLog('🔍 검증 결과: ' + (result.isValid ? '성공' : '실패'));
+                       if (!result.isValid) {
+                         addDebugLog('❌ 오류: ' + result.error);
+                       }
+                     }}
+                   />
+                 </ThemedView>
+               )}
+
+               {/* 디버그 로그 표시 */}
+               {debugLogs.length > 0 && (
+                 <ThemedView style={styles.debugContainer}>
+                   <ThemedText style={styles.debugTitle}>📋 디버그 로그</ThemedText>
+                   {debugLogs.map((log, index) => (
+                     <ThemedText key={index} style={styles.debugLog}>
+                       {log}
+                     </ThemedText>
+                   ))}
+                 </ThemedView>
+               )}
 
         </ThemedView>
       </ScrollView>
@@ -241,11 +265,34 @@ const styles = StyleSheet.create({
     color: '#666',
     fontWeight: 'bold',
   },
-  userInfoValue: {
-    fontSize: 12,
-    color: '#333',
-    fontFamily: 'monospace',
-    flex: 1,
-    textAlign: 'right',
-  },
-});
+         userInfoValue: {
+           fontSize: 12,
+           color: '#333',
+           fontFamily: 'monospace',
+           flex: 1,
+           textAlign: 'right',
+         },
+         debugContainer: {
+           marginTop: 20,
+           padding: 16,
+           backgroundColor: '#f8f9fa',
+           borderRadius: 8,
+           borderWidth: 1,
+           borderColor: '#dee2e6',
+           width: '100%',
+         },
+         debugTitle: {
+           fontSize: 14,
+           color: '#495057',
+           fontWeight: 'bold',
+           marginBottom: 8,
+           textAlign: 'center',
+         },
+         debugLog: {
+           fontSize: 10,
+           color: '#6c757d',
+           fontFamily: 'monospace',
+           marginVertical: 2,
+           lineHeight: 14,
+         },
+       });

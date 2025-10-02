@@ -26,7 +26,18 @@ export default function SimpleTokenVerifier({
     setIsVerifying(true);
     
     try {
-      const result = await validateToken(token, undefined, tokenKey);
+      console.log('========================================');
+      console.log('🚀 SimpleTokenVerifier 시작');
+      console.log('🔑 토큰:', token.substring(0, 50) + '...');
+      console.log('🗝️  키:', tokenKey.substring(0, 50) + '...');
+      console.log('========================================');
+      
+      const result = await validateToken(token, tokenKey);
+      
+      console.log('========================================');
+      console.log('✅ 검증 완료:', result.isValid ? '성공' : '실패');
+      console.log('📊 결과:', result);
+      console.log('========================================');
       
       setVerificationResult(result);
       onVerificationComplete?.(result);

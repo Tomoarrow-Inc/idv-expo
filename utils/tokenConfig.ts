@@ -7,16 +7,14 @@ export const USER_CONFIG = {
   userName: 'IDV User', // 사용자명 (선택사항)
 };
 
-// 토큰 검증에 사용되는 키들
-export const TOKEN_KEYS = {
-  secretKey: 'your-secret-key', // JWT 서명용 비밀키 (실제로는 환경변수에서 가져와야 함)
-};
+// 서버에서 Base64로 인코딩된 Public Key를 받아서 사용
+// 하드코딩된 키는 제거됨 - 서버에서 동적으로 제공
 
 // 토큰 검증 규칙 설정 (서버 토큰 형식에 맞춤)
 export const VALIDATION_RULES = {
   validateUserId: true, // 사용자 ID 검증 여부 (sub 필드)
   validateExpiration: true, // 만료시간 검증 여부
-  validateSignature: true, // 서명 검증 여부
+  validateSignature: true, // ES256 서명 검증 활성화
 };
 
 // 에러 메시지들
