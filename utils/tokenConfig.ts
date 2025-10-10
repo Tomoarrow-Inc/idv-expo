@@ -2,7 +2,7 @@
 
 // 하드코딩된 사용자 정보
 export const USER_CONFIG = {
-  userId: '7999752903327968492',
+  userId: '7999752903327968493',
   userRole: 'user', // 또는 'admin', 'premium' 등
   userName: 'IDV User', // 사용자명 (선택사항)
 };
