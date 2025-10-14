@@ -4,13 +4,14 @@ import { useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+// Expo go test 용 라우트
+// ** tomo에선 쿼리 스트링으로 토큰 전달, 해당 라우트는 더 이상 사용하지 않음 **
+
 /**
  * Path Parameter 방식 토큰 라우트 (레거시 호환용)
  * 
  * 사용 예시:
  * idvexpo://token/{verified_token}/{key}
- * 
- * 권장: idvexpo://verify?token=...&key=... 사용
  */
 export default function TokenWithKeyScreen() {
   const params = useLocalSearchParams();
