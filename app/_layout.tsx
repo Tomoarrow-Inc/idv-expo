@@ -19,9 +19,6 @@ export default function RootLayout() {
     console.log('🚀 앱이 시작되었습니다');
     console.log('📱 플랫폼:', Platform.OS);
     console.log('🔍 전체 searchParams:', searchParams);
-    
-    // Expo Router가 자동으로 딥링크를 처리하므로 수동 Linking은 불필요
-    // 필요시 searchParams를 통해 전달된 파라미터 확인 가능
   }, []);
 
   useEffect(() => {
@@ -34,7 +31,14 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        
+        {/* IDV 검증 콜백 라우트 (권장) */}
+        {/* IDV-app에 등록할 Redirect URI: idvexpo://verify */}
+        <Stack.Screen name="verify" options={{ headerShown: false }} />
+        
+        {/* 레거시 Path Parameter 방식 (하위 호환용) */}
         <Stack.Screen name="token/[verified_token]/[key]" options={{ headerShown: false }} />
+        
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <StatusBar style="auto" />
