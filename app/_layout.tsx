@@ -1,5 +1,4 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import * as Linking from 'expo-linking';
 import { Stack, useGlobalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -20,22 +19,9 @@ export default function RootLayout() {
     console.log('🚀 앱이 시작되었습니다');
     console.log('📱 플랫폼:', Platform.OS);
     console.log('🔍 전체 searchParams:', searchParams);
-
-    // 초기 URL 확인
-    Linking.getInitialURL().then(url => {
-      console.log('🔗 초기 URL:', url);
-    });
-
-    // URL 변경 리스너
-    const subscription = Linking.addEventListener('url', ({ url }) => {
-      console.log('🔗 새로운 URL 수신:', url);
-      const parsed = Linking.parse(url);
-      console.log('📦 파싱된 URL:', parsed);
-    });
-
-    return () => {
-      subscription.remove();
-    };
+    
+    // Expo Router가 자동으로 딥링크를 처리하므로 수동 Linking은 불필요
+    // 필요시 searchParams를 통해 전달된 파라미터 확인 가능
   }, []);
 
   useEffect(() => {
@@ -48,7 +34,6 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="token/[verified_token]" options={{ headerShown: false }} />
         <Stack.Screen name="token/[verified_token]/[key]" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>

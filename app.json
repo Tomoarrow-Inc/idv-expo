@@ -6,16 +6,15 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "idvexpo",
-    "deepLink": "idvexpo",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.idv-expo"
-    },
-    "infoPlist": {
-      "NSAppTransportSecurity": {
-        "NSAllowsArbitraryLoads": true
+      "bundleIdentifier": "com.anonymous.idv-expo",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
       }
     },
     "android": {
@@ -32,7 +31,6 @@
         "ACCESS_NETWORK_STATE",
         "ACCESS_WIFI_STATE"
       ],
-      "usesCleartextTraffic": true,
       "intentFilters": [
         {
           "action": "VIEW",
@@ -45,9 +43,13 @@
               "scheme": "idvexpo"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
-      ]
+      ],
+      "package": "com.anonymous.idvexpo"
     },
     "web": {
       "output": "static",
@@ -71,6 +73,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "72474566-c26d-461c-81c0-0cb3c44a887e"
+      }
     }
   }
 }
