@@ -10,7 +10,7 @@ import { StyleSheet, View } from 'react-native';
  * 사용 예시:
  * idvexpo://verify?token={verified_token}&key={public_key}
  * 
- * IDV-app에 등록할 Redirect URI: idvexpo://verify
+ * IDV-app에 idvexpo 앱스킴 등록됨, url 입력으로 idvexpo://verify 으로 사용가능.
  */
 export default function VerifyScreen() {
   const params = useLocalSearchParams();
