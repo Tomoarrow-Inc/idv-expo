@@ -1,5 +1,4 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import * as Linking from 'expo-linking';
 import { Stack, useGlobalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -20,22 +19,6 @@ export default function RootLayout() {
     console.log('🚀 앱이 시작되었습니다');
     console.log('📱 플랫폼:', Platform.OS);
     console.log('🔍 전체 searchParams:', searchParams);
-
-    // 초기 URL 확인
-    Linking.getInitialURL().then(url => {
-      console.log('🔗 초기 URL:', url);
-    });
-
-    // URL 변경 리스너
-    const subscription = Linking.addEventListener('url', ({ url }) => {
-      console.log('🔗 새로운 URL 수신:', url);
-      const parsed = Linking.parse(url);
-      console.log('📦 파싱된 URL:', parsed);
-    });
-
-    return () => {
-      subscription.remove();
-    };
   }, []);
 
   useEffect(() => {
@@ -48,8 +31,14 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="token/[verified_token]" options={{ headerShown: false }} />
+        
+        {/* IDV 검증 콜백 라우트 (권장) */}
+        {/* IDV-app에 등록할 Redirect URI: idvexpo://verify */}
+        <Stack.Screen name="verify" options={{ headerShown: false }} />
+        
+        {/* 레거시 Path Parameter 방식 (하위 호환용) */}
         <Stack.Screen name="token/[verified_token]/[key]" options={{ headerShown: false }} />
+        
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <StatusBar style="auto" />
