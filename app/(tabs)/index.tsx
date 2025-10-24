@@ -3,14 +3,16 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { USER_CONFIG } from '@/utils/tokenConfig';
 import { useGlobalSearchParams } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const [receivedToken, setReceivedToken] = useState<string | null>(null);
   const [receivedKey, setReceivedKey] = useState<string | null>(null);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   
   // 전역 파라미터에서 토큰과 키 가져오기
   const searchParams = useGlobalSearchParams();
@@ -28,6 +30,54 @@ export default function HomeScreen() {
     const logMessage = `[${timestamp}] ${message}`;
     setDebugLogs(prev => [...prev.slice(-9), logMessage]); // 최근 10개만 유지
     console.log(logMessage);
+  };
+
+  // 토큰 요청 함수
+  const handleRequestToken = async () => {
+    setIsLoading(true);
+    addDebugLog('🌐 토큰 요청 시작...');
+    
+    try {
+      const response = await fetch('http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com/link_token', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      addDebugLog('✅ 서버 응답 수신됨');
+      
+      if (data.start_idv_uri) {
+        addDebugLog('🔗 브라우저 열기: ' + data.start_idv_uri);
+        
+        // 브라우저로 URL 열기
+        const result = await WebBrowser.openBrowserAsync(data.start_idv_uri, {
+          presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+        });
+        
+        if (result.type === 'dismiss') {
+          addDebugLog('📱 브라우저가 닫혔습니다');
+        }
+      } else {
+        addDebugLog('❌ 응답에 start_idv_uri이 없습니다');
+        Alert.alert('오류', '서버 응답에 start_idv_uri이 포함되어 있지 않습니다.');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      addDebugLog('❌ 토큰 요청 실패: ' + errorMessage);
+      Alert.alert(
+        '요청 실패',
+        `토큰을 요청하는 중 오류가 발생했습니다:\n${errorMessage}`,
+        [{ text: '확인' }]
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -88,7 +138,24 @@ export default function HomeScreen() {
             }
           </ThemedText>
         </ThemedView>
-        
+
+        {/* 동적 버튼: 토큰이 있으면 리셋 버튼, 없으면 토큰 요청 버튼 */}
+        <TouchableOpacity
+          style={[styles.requestButton, isLoading && styles.requestButtonDisabled]}
+          onPress={handleRequestToken}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />
+              <ThemedText style={styles.requestButtonText}>🔄 요청 중...</ThemedText>
+            </>
+          ) : (
+            <ThemedText style={styles.requestButtonText}>인증 시작</ThemedText>
+          )}
+        </TouchableOpacity>
+
+
         {/* 토큰 표시 */}
         {receivedToken && (
           <ThemedView style={styles.tokenContainer}>
