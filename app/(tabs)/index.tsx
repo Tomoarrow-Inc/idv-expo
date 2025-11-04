@@ -1,11 +1,11 @@
 import SimpleTokenVerifier from '@/components/SimpleTokenVerifier';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { USER_CONFIG } from '@/utils/tokenConfig';
+import { USER_CONFIG, updateUserId } from '@/utils/tokenConfig';
 import { useGlobalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -13,6 +13,8 @@ export default function HomeScreen() {
   const [receivedKey, setReceivedKey] = useState<string | null>(null);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [userIdInput, setUserIdInput] = useState<string>(USER_CONFIG.userId);
+  const [isLoadingUS, setIsLoadingUS] = useState<boolean>(false);
   
   // 전역 파라미터에서 토큰과 키 가져오기
   const searchParams = useGlobalSearchParams();
@@ -80,6 +82,66 @@ export default function HomeScreen() {
     }
   };
 
+  // 미국 인증 요청 함수
+  const handleRequestUSToken = async () => {
+    if (!userIdInput || userIdInput.trim() === '') {
+      Alert.alert('입력 오류', 'User ID를 입력해주세요.');
+      return;
+    }
+
+    // USER_CONFIG 업데이트
+    updateUserId(userIdInput.trim());
+    addDebugLog('👤 User ID 업데이트: ' + userIdInput.trim());
+
+    setIsLoadingUS(true);
+    addDebugLog('🇺🇸 미국 인증 요청 시작...');
+    
+    try {
+      const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com/us/start?user_id=${userIdInput.trim()}`;
+      addDebugLog('🌐 요청 URL: ' + url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      addDebugLog('✅ 서버 응답 수신됨');
+      
+      if (data.start_idv_uri) {
+        addDebugLog('🔗 브라우저 열기: ' + data.start_idv_uri);
+        
+        // 브라우저로 URL 열기
+        const result = await WebBrowser.openBrowserAsync(data.start_idv_uri, {
+          presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+        });
+        
+        if (result.type === 'dismiss') {
+          addDebugLog('📱 브라우저가 닫혔습니다');
+        }
+      } else {
+        addDebugLog('❌ 응답에 start_idv_uri이 없습니다');
+        Alert.alert('오류', '서버 응답에 start_idv_uri이 포함되어 있지 않습니다.');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      addDebugLog('❌ 미국 인증 요청 실패: ' + errorMessage);
+      Alert.alert(
+        '요청 실패',
+        `미국 인증을 요청하는 중 오류가 발생했습니다:\n${errorMessage}`,
+        [{ text: '확인' }]
+      );
+    } finally {
+      setIsLoadingUS(false);
+    }
+  };
+
   useEffect(() => {
     if (verifiedToken && verifiedToken !== receivedToken) {
       addDebugLog('🎯 토큰 수신됨: ' + verifiedToken.substring(0, 50) + '...');
@@ -118,7 +180,7 @@ export default function HomeScreen() {
           <ThemedText style={styles.userInfoTitle}>👤 등록된 사용자 정보</ThemedText>
           <ThemedView style={styles.userInfoRow}>
             <ThemedText style={styles.userInfoLabel}>사용자 ID:</ThemedText>
-            <ThemedText style={styles.userInfoValue}>{USER_CONFIG.userId}</ThemedText>
+            <ThemedText style={styles.userInfoValue}>{userIdInput || USER_CONFIG.userId}</ThemedText>
           </ThemedView>
           <ThemedView style={styles.userInfoRow}>
             <ThemedText style={styles.userInfoLabel}>사용자명:</ThemedText>
@@ -139,8 +201,32 @@ export default function HomeScreen() {
           </ThemedText>
         </ThemedView>
 
+        {/* User ID 입력 필드 */}
+        <ThemedView style={styles.userIdInputContainer}>
+          <ThemedText style={styles.userIdInputLabel}>👤 User ID</ThemedText>
+          <TextInput
+            style={styles.userIdInput}
+            value={userIdInput}
+            onChangeText={(text) => {
+              setUserIdInput(text);
+              // 입력 시마다 USER_CONFIG 업데이트
+              if (text.trim() !== '') {
+                updateUserId(text.trim());
+                addDebugLog('👤 User ID 변경: ' + text.trim());
+              }
+            }}
+            placeholder="User ID를 입력하세요"
+            placeholderTextColor="#999"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <ThemedText style={styles.userIdInputHint}>
+            현재 설정된 User ID가 화면과 검증 로직에 적용됩니다
+          </ThemedText>
+        </ThemedView>
+
         {/* 동적 버튼: 토큰이 있으면 리셋 버튼, 없으면 토큰 요청 버튼 */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[styles.requestButton, isLoading && styles.requestButtonDisabled]}
           onPress={handleRequestToken}
           disabled={isLoading}
@@ -152,6 +238,22 @@ export default function HomeScreen() {
             </>
           ) : (
             <ThemedText style={styles.requestButtonText}>인증 시작</ThemedText>
+          )}
+        </TouchableOpacity> */}
+
+        {/* 미국 인증 버튼 */}
+        <TouchableOpacity
+          style={[styles.requestButton, styles.usButton, isLoadingUS && styles.requestButtonDisabled]}
+          onPress={handleRequestUSToken}
+          disabled={isLoadingUS}
+        >
+          {isLoadingUS ? (
+            <>
+              <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />
+              <ThemedText style={styles.requestButtonText}>🔄 요청 중...</ThemedText>
+            </>
+          ) : (
+            <ThemedText style={styles.requestButtonText}>🇺🇸 미국 인증 시작</ThemedText>
           )}
         </TouchableOpacity>
 
@@ -361,5 +463,55 @@ const styles = StyleSheet.create({
            fontFamily: 'monospace',
            marginVertical: 2,
            lineHeight: 14,
+         },
+         requestButton: {
+           marginTop: 20,
+           backgroundColor: '#007AFF',
+           paddingVertical: 14,
+           paddingHorizontal: 24,
+           borderRadius: 8,
+           alignItems: 'center',
+           justifyContent: 'center',
+           width: '100%',
+         },
+         requestButtonDisabled: {
+           backgroundColor: '#999',
+           opacity: 0.6,
+         },
+         requestButtonText: {
+           color: '#fff',
+           fontSize: 16,
+           fontWeight: 'bold',
+         },
+         usButton: {
+           backgroundColor: '#FF6B35',
+           marginTop: 12,
+         },
+         userIdInputContainer: {
+           marginTop: 20,
+           width: '100%',
+         },
+         userIdInputLabel: {
+           fontSize: 14,
+           color: '#333',
+           fontWeight: 'bold',
+           marginBottom: 8,
+         },
+         userIdInput: {
+           backgroundColor: '#fff',
+           borderWidth: 1,
+           borderColor: '#ddd',
+           borderRadius: 8,
+           paddingHorizontal: 12,
+           paddingVertical: 10,
+           fontSize: 14,
+           color: '#333',
+           width: '100%',
+         },
+         userIdInputHint: {
+           fontSize: 11,
+           color: '#666',
+           marginTop: 6,
+           fontStyle: 'italic',
          },
        });

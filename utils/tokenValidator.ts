@@ -2,8 +2,8 @@ import * as Crypto from 'expo-crypto';
 import { jwtDecode } from 'jwt-decode';
 import { ERROR_MESSAGES, USER_CONFIG, VALIDATION_RULES } from './tokenConfig';
 
-// 하드코딩된 사용자 ID
-export const USER_ID = USER_CONFIG.userId;
+// USER_CONFIG.userId를 직접 참조하도록 변경 (동적 업데이트 지원)
+const getUserId = () => USER_CONFIG.userId;
 
 export interface TokenValidationResult {
   isValid: boolean;
@@ -152,7 +152,7 @@ export async function validateToken(
     console.log('🔍 토큰 검증 시작...');
     console.log('🔑 토큰:', token.substring(0, 50) + '...');
     console.log('🗝️  서버 Public Key:', additionalKey ? '제공됨' : 'No key provided');
-    console.log('👤 예상 사용자 ID:', USER_ID);
+    console.log('👤 예상 사용자 ID:', getUserId());
     console.log('========================================');
 
     // 서버에서 받은 Base64로 인코딩된 Public Key 디코딩
@@ -281,18 +281,19 @@ export async function validateToken(
       console.log('   - 서명 검증 비활성화됨');
     }
 
-    // 5. 사용자 ID 검증 (서버 토큰의 sub 필드와 하드코딩된 사용자 ID 비교)
+    // 5. 사용자 ID 검증 (서버 토큰의 sub 필드와 USER_CONFIG의 사용자 ID 비교)
     console.log('📋 Step 5: 사용자 ID 검증');
     if (VALIDATION_RULES.validateUserId) {
       const tokenUserId = decodedToken.sub; // 서버에서는 sub 필드에 사용자 ID 저장
+      const expectedUserId = getUserId(); // 동적으로 USER_CONFIG에서 가져오기
       console.log('   - 토큰의 사용자 ID (sub):', tokenUserId);
-      console.log('   - 예상 사용자 ID:', USER_ID);
+      console.log('   - 예상 사용자 ID:', expectedUserId);
       
-      if (tokenUserId !== USER_ID) {
+      if (tokenUserId !== expectedUserId) {
         console.log('   ❌ 실패: 사용자 ID가 일치하지 않음');
         return {
           isValid: false,
-          error: `${ERROR_MESSAGES.INVALID_USER_ID} 예상: ${USER_ID}, 실제: ${tokenUserId}`,
+          error: `${ERROR_MESSAGES.INVALID_USER_ID} 예상: ${expectedUserId}, 실제: ${tokenUserId}`,
           decodedToken,
           expiresAt: expiresAt || undefined,
           issuedAt: issuedAt || undefined
