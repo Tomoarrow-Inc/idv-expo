@@ -15,6 +15,7 @@ export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userIdInput, setUserIdInput] = useState<string>(USER_CONFIG.userId);
   const [isLoadingUS, setIsLoadingUS] = useState<boolean>(false);
+  const [isLoadingJP, setIsLoadingJP] = useState<boolean>(false);
   
   // 전역 파라미터에서 토큰과 키 가져오기
   const searchParams = useGlobalSearchParams();
@@ -142,6 +143,67 @@ export default function HomeScreen() {
     }
   };
 
+  // 일본 인증 요청 함수
+  const handleRequestJPToken = async () => {
+    if (!userIdInput || userIdInput.trim() === '') {
+      Alert.alert('입력 오류', 'User ID를 입력해주세요.');
+      return;
+    }
+
+    // USER_CONFIG 업데이트
+    updateUserId(userIdInput.trim());
+    addDebugLog('👤 User ID 업데이트: ' + userIdInput.trim());
+
+    setIsLoadingJP(true);
+    addDebugLog('🇯🇵 일본 인증 요청 시작...');
+    
+    try {
+      const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com/start?user_id=${userIdInput.trim()}&email=chanhee@tomoarrow.com&callback_url=idvexpo://verify&country=jp`;
+      // const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com/start?user_id=${userIdInput.trim()}`;
+      addDebugLog('🌐 요청 URL: ' + url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      addDebugLog('✅ 서버 응답 수신됨');
+      
+      if (data.start_idv_uri) {
+        addDebugLog('🔗 브라우저 열기: ' + data.start_idv_uri);
+        
+        // 브라우저로 URL 열기
+        const result = await WebBrowser.openBrowserAsync(data.start_idv_uri, {
+          presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+        });
+        
+        if (result.type === 'dismiss') {
+          addDebugLog('📱 브라우저가 닫혔습니다');
+        }
+      } else {
+        addDebugLog('❌ 응답에 start_idv_uri이 없습니다');
+        Alert.alert('오류', '서버 응답에 start_idv_uri이 포함되어 있지 않습니다.');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      addDebugLog('❌ 일본 인증 요청 실패: ' + errorMessage);
+      Alert.alert(
+        '요청 실패',
+        `일본 인증을 요청하는 중 오류가 발생했습니다:\n${errorMessage}`,
+        [{ text: '확인' }]
+      );
+    } finally {
+      setIsLoadingJP(false);
+    }
+  };
+
   useEffect(() => {
     if (verifiedToken && verifiedToken !== receivedToken) {
       addDebugLog('🎯 토큰 수신됨: ' + verifiedToken.substring(0, 50) + '...');
@@ -256,6 +318,22 @@ export default function HomeScreen() {
             <ThemedText style={styles.requestButtonText}>🇺🇸 미국 인증 시작</ThemedText>
           )}
         </TouchableOpacity>
+
+        {/* 일본 인증 버튼 */}
+        {/* <TouchableOpacity
+          style={[styles.requestButton, styles.jpButton, isLoadingJP && styles.requestButtonDisabled]}
+          onPress={handleRequestJPToken}
+          disabled={isLoadingJP}
+        >
+          {isLoadingJP ? (
+            <>
+              <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />
+              <ThemedText style={styles.requestButtonText}>🔄 요청 중...</ThemedText>
+            </>
+          ) : (
+            <ThemedText style={styles.requestButtonText}>🇯🇵 일본 인증 시작</ThemedText>
+          )}
+        </TouchableOpacity> */}
 
 
         {/* 토큰 표시 */}
@@ -485,6 +563,10 @@ const styles = StyleSheet.create({
          },
          usButton: {
            backgroundColor: '#FF6B35',
+           marginTop: 12,
+         },
+         jpButton: {
+           backgroundColor: '#BC002D',
            marginTop: 12,
          },
          userIdInputContainer: {
