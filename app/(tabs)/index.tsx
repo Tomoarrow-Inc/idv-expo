@@ -1,11 +1,10 @@
-import SimpleTokenVerifier from '@/components/SimpleTokenVerifier';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { USER_CONFIG, updateUserId } from '@/utils/tokenConfig';
 import { useGlobalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -206,20 +205,23 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (verifiedToken && verifiedToken !== receivedToken) {
-      addDebugLog('🎯 토큰 수신됨: ' + verifiedToken.substring(0, 50) + '...');
-      if (key) {
-        addDebugLog('🗝️  키 수신됨: ' + key.substring(0, 50) + '...');
-      }
+      // 기존 디버그 로그 주석처리
+      // addDebugLog('🎯 토큰 수신됨: ' + verifiedToken.substring(0, 50) + '...');
+      // if (key) {
+      //   addDebugLog('🗝️  키 수신됨: ' + key.substring(0, 50) + '...');
+      // }
       setReceivedToken(verifiedToken);
       setReceivedKey(key || null);
 
-      const message = key
-        ? `토큰과 키가 성공적으로 받아졌습니다!\n\n토큰: ${verifiedToken.substring(0, 50)}...\n키: ${key}`
-        : `토큰이 성공적으로 받아졌습니다!\n\n토큰: ${verifiedToken.substring(0, 50)}...`;
+      // 기존 메시지 주석처리
+      // const message = key
+      //   ? `토큰과 키가 성공적으로 받아졌습니다!\n\n토큰: ${verifiedToken.substring(0, 50)}...\n키: ${key}`
+      //   : `토큰이 성공적으로 받아졌습니다!\n\n토큰: ${verifiedToken.substring(0, 50)}...`;
 
+      // 간단한 팝업 메시지
       Alert.alert(
-        '🎊 수신 완료!',
-        message,
+        '인증 완료',
+        '인증 token이 발급 되었습니다.',
         [{ text: '확인', style: 'default' }]
       );
     }
@@ -233,12 +235,18 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={true}
       >
         <ThemedView style={styles.placeholder}>
-        <ThemedText style={styles.placeholderText}>
+        {/* <ThemedText style={styles.placeholderText}>
           딥링크 토큰 수신 테스트 앱
+        </ThemedText> */}
+        <ThemedText 
+          style={styles.placeholderText}
+          {...(Platform.OS === 'android' && { includeFontPadding: false })}
+        >
+          Tomoarrow IDV Test App
         </ThemedText>
         
         {/* 하드코딩된 사용자 정보 표시 */}
-        <ThemedView style={styles.userInfoContainer}>
+        {/* <ThemedView style={styles.userInfoContainer}>
           <ThemedText style={styles.userInfoTitle}>👤 등록된 사용자 정보</ThemedText>
           <ThemedView style={styles.userInfoRow}>
             <ThemedText style={styles.userInfoLabel}>사용자 ID:</ThemedText>
@@ -248,10 +256,10 @@ export default function HomeScreen() {
             <ThemedText style={styles.userInfoLabel}>사용자명:</ThemedText>
             <ThemedText style={styles.userInfoValue}>{USER_CONFIG.userName}</ThemedText>
           </ThemedView>
-        </ThemedView>
+        </ThemedView> */}
         
         {/* 토큰 수신 상태 표시 */}
-        <ThemedView style={[styles.statusContainer, receivedToken ? styles.statusSuccess : styles.statusWaiting]}>
+        {/* <ThemedView style={[styles.statusContainer, receivedToken ? styles.statusSuccess : styles.statusWaiting]}>
           <ThemedText style={styles.statusTitle}>
             {receivedToken ? '✅ 토큰 수신 완료' : '⏳ 토큰 대기 중'}
           </ThemedText>
@@ -261,11 +269,16 @@ export default function HomeScreen() {
               : '외부에서 딥링크로 토큰을 전달해주세요.'
             }
           </ThemedText>
-        </ThemedView>
+        </ThemedView> */}
 
         {/* User ID 입력 필드 */}
         <ThemedView style={styles.userIdInputContainer}>
-          <ThemedText style={styles.userIdInputLabel}>👤 User ID</ThemedText>
+          <ThemedText 
+            style={styles.userIdInputLabel}
+            {...(Platform.OS === 'android' && { includeFontPadding: false })}
+          >
+            👤 User ID
+          </ThemedText>
           <TextInput
             style={styles.userIdInput}
             value={userIdInput}
@@ -274,7 +287,8 @@ export default function HomeScreen() {
               // 입력 시마다 USER_CONFIG 업데이트
               if (text.trim() !== '') {
                 updateUserId(text.trim());
-                addDebugLog('👤 User ID 변경: ' + text.trim());
+                // 기존 디버그 로그 주석처리
+                // addDebugLog('👤 User ID 변경: ' + text.trim());
               }
             }}
             placeholder="User ID를 입력하세요"
@@ -282,9 +296,9 @@ export default function HomeScreen() {
             autoCapitalize="none"
             autoCorrect={false}
           />
-          <ThemedText style={styles.userIdInputHint}>
+          {/* <ThemedText style={styles.userIdInputHint}>
             현재 설정된 User ID가 화면과 검증 로직에 적용됩니다
-          </ThemedText>
+          </ThemedText> */}
         </ThemedView>
 
         {/* 동적 버튼: 토큰이 있으면 리셋 버튼, 없으면 토큰 요청 버튼 */}
@@ -305,17 +319,31 @@ export default function HomeScreen() {
 
         {/* 미국 인증 버튼 */}
         <TouchableOpacity
-          style={[styles.requestButton, styles.usButton, isLoadingUS && styles.requestButtonDisabled]}
+          style={[
+            styles.requestButton,
+            styles.usButton,
+            isLoadingUS && styles.requestButtonDisabled,
+          ]}
           onPress={handleRequestUSToken}
           disabled={isLoadingUS}
         >
           {isLoadingUS ? (
             <>
-              <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />
-              <ThemedText style={styles.requestButtonText}>🔄 요청 중...</ThemedText>
+              <ActivityIndicator size="large" color="#fff" style={{ marginRight: 16 }} />
+              <ThemedText 
+                style={styles.requestButtonText}
+                {...(Platform.OS === 'android' && { includeFontPadding: false })}
+              >
+                🔄 요청 중...
+              </ThemedText>
             </>
           ) : (
-            <ThemedText style={styles.requestButtonText}>🇺🇸 미국 인증 시작</ThemedText>
+            <ThemedText 
+              style={styles.requestButtonText}
+              {...(Platform.OS === 'android' && { includeFontPadding: false })}
+            >
+              🇺🇸 미국 인증 시작
+            </ThemedText>
           )}
         </TouchableOpacity>
 
@@ -336,8 +364,8 @@ export default function HomeScreen() {
         </TouchableOpacity> */}
 
 
-        {/* 토큰 표시 */}
-        {receivedToken && (
+        {/* 토큰 표시 - 주석처리 */}
+        {/* {receivedToken && (
           <ThemedView style={styles.tokenContainer}>
             <ThemedText style={styles.tokenLabel}>🔑 받은 토큰:</ThemedText>
             <ThemedText style={styles.tokenValue}>{receivedToken}</ThemedText>
@@ -348,36 +376,36 @@ export default function HomeScreen() {
               </>
             )}
           </ThemedView>
-        )}
+        )} */}
 
-               {/* 토큰 검증 컴포넌트 */}
-               {receivedToken && (
-                 <ThemedView style={styles.verifierContainer}>
-                   <ThemedText style={styles.verifierTitle}>🔐 토큰 검증 (간소화 버전)</ThemedText>
-                   <SimpleTokenVerifier
-                     token={receivedToken}
-                     publicKey={receivedKey || 'default-key'} // 토큰과 키는 한 쌍이므로 필수
-                     onVerificationComplete={(result) => {
-                       addDebugLog('🔍 검증 결과: ' + (result.isValid ? '성공' : '실패'));
-                       if (!result.isValid) {
-                         addDebugLog('❌ 오류: ' + result.error);
-                       }
-                     }}
-                   />
-                 </ThemedView>
-               )}
+        {/* 토큰 검증 컴포넌트 - 주석처리 */}
+        {/* {receivedToken && (
+          <ThemedView style={styles.verifierContainer}>
+            <ThemedText style={styles.verifierTitle}>🔐 토큰 검증 (간소화 버전)</ThemedText>
+            <SimpleTokenVerifier
+              token={receivedToken}
+              publicKey={receivedKey || 'default-key'} // 토큰과 키는 한 쌍이므로 필수
+              onVerificationComplete={(result) => {
+                addDebugLog('🔍 검증 결과: ' + (result.isValid ? '성공' : '실패'));
+                if (!result.isValid) {
+                  addDebugLog('❌ 오류: ' + result.error);
+                }
+              }}
+            />
+          </ThemedView>
+        )} */}
 
-               {/* 디버그 로그 표시 */}
-               {debugLogs.length > 0 && (
-                 <ThemedView style={styles.debugContainer}>
-                   <ThemedText style={styles.debugTitle}>📋 디버그 로그</ThemedText>
-                   {debugLogs.map((log, index) => (
-                     <ThemedText key={index} style={styles.debugLog}>
-                       {log}
-                     </ThemedText>
-                   ))}
-                 </ThemedView>
-               )}
+        {/* 디버그 로그 표시 - 주석처리 */}
+        {/* {debugLogs.length > 0 && (
+          <ThemedView style={styles.debugContainer}>
+            <ThemedText style={styles.debugTitle}>📋 디버그 로그</ThemedText>
+            {debugLogs.map((log, index) => (
+              <ThemedText key={index} style={styles.debugLog}>
+                {log}
+              </ThemedText>
+            ))}
+          </ThemedView>
+        )} */}
 
         </ThemedView>
       </ScrollView>
@@ -395,22 +423,23 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 20, // 하단 여백 추가
+    paddingBottom: 40, // 하단 여백 추가
   },
   placeholder: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    padding: 32,
     backgroundColor: '#fff',
     minHeight: '100%', // 최소 높이 설정
   },
   placeholderText: {
-    fontSize: 18,
+    fontSize: 32,
     color: '#333',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 44,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 40,
+    paddingTop: Platform.OS === 'android' ? 4 : 0,
   },
   statusContainer: {
     marginTop: 20,
@@ -543,14 +572,16 @@ const styles = StyleSheet.create({
            lineHeight: 14,
          },
          requestButton: {
-           marginTop: 20,
+           marginTop: 32,
            backgroundColor: '#007AFF',
-           paddingVertical: 14,
-           paddingHorizontal: 24,
-           borderRadius: 8,
+           paddingTop: Platform.OS === 'android' ? 28 : 24,
+           paddingBottom: Platform.OS === 'android' ? 28 : 24,
+           paddingHorizontal: 32,
+           borderRadius: 16,
            alignItems: 'center',
            justifyContent: 'center',
            width: '100%',
+           minHeight: 100,
          },
          requestButtonDisabled: {
            backgroundColor: '#999',
@@ -558,37 +589,49 @@ const styles = StyleSheet.create({
          },
          requestButtonText: {
            color: '#fff',
-           fontSize: 16,
+           fontSize: 32,
            fontWeight: 'bold',
+           textAlign: 'center',
+           lineHeight: 44,
+           paddingTop: Platform.OS === 'android' ? 4 : 0,
          },
          usButton: {
            backgroundColor: '#FF6B35',
-           marginTop: 12,
+           marginTop: 24,
          },
          jpButton: {
            backgroundColor: '#BC002D',
            marginTop: 12,
          },
          userIdInputContainer: {
-           marginTop: 20,
+           marginTop: 32,
            width: '100%',
          },
          userIdInputLabel: {
-           fontSize: 14,
+           fontSize: 28,
            color: '#333',
            fontWeight: 'bold',
-           marginBottom: 8,
+           marginBottom: 16,
+           lineHeight: 38,
+           paddingTop: Platform.OS === 'android' ? 4 : 0,
          },
          userIdInput: {
            backgroundColor: '#fff',
-           borderWidth: 1,
+           borderWidth: 2,
            borderColor: '#ddd',
-           borderRadius: 8,
-           paddingHorizontal: 12,
-           paddingVertical: 10,
-           fontSize: 14,
+           borderRadius: 12,
+           paddingHorizontal: 20,
+           paddingTop: Platform.OS === 'android' ? 20 : 18,
+           paddingBottom: Platform.OS === 'android' ? 20 : 18,
+           fontSize: 24,
            color: '#333',
            width: '100%',
+           minHeight: 64,
+           lineHeight: 32,
+           ...(Platform.OS === 'android' && { 
+             textAlignVertical: 'center',
+             includeFontPadding: false,
+           }),
          },
          userIdInputHint: {
            fontSize: 11,
