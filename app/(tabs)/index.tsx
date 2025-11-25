@@ -143,7 +143,7 @@ export default function HomeScreen() {
     }
   };
 
-  // 미국 인증 요청 함수
+  // 미국 인증 요청 함수 (Prod)
   const handleRequestUSProductToken = async () => {
     if (!userIdInput || userIdInput.trim() === '') {
       Alert.alert('입력 오류', 'User ID를 입력해주세요.');
@@ -154,8 +154,8 @@ export default function HomeScreen() {
     updateUserId(userIdInput.trim());
     addDebugLog('👤 User ID 업데이트: ' + userIdInput.trim());
 
-    setIsLoadingUS(true);
-    addDebugLog('🇺🇸 미국 인증 요청 시작...');
+    setIsLoadingUSProduct(true);
+    addDebugLog('🇺🇸 미국 인증 요청 시작 (Prod)...');
     
     try {
       const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com:8080/us/start?user_id=${userIdInput.trim()}`;
@@ -199,7 +199,7 @@ export default function HomeScreen() {
         [{ text: '확인' }]
       );
     } finally {
-      setIsLoadingUS(false);
+      setIsLoadingUSProduct(false);
     }
   };
 
@@ -304,7 +304,7 @@ export default function HomeScreen() {
           style={styles.placeholderText}
           {...(Platform.OS === 'android' && { includeFontPadding: false })}
         >
-          Tomoarrow IDV
+          Tomo IDV
         </ThemedText>
         
         {/* 하드코딩된 사용자 정보 표시 */}
@@ -379,11 +379,69 @@ export default function HomeScreen() {
           )}
         </TouchableOpacity> */}
 
-        {/* 미국 인증 버튼 */}
+        {/* 일본 인증 버튼 */}
+        <TouchableOpacity
+          style={[styles.requestButton, styles.jpButton, isLoadingJP && styles.requestButtonDisabled]}
+          onPress={handleRequestJPToken}
+          disabled={isLoadingJP}
+        >
+          {isLoadingJP ? (
+            <>
+              <ActivityIndicator size="large" color="#fff" style={{ marginRight: 16 }} />
+              <ThemedText 
+                style={styles.requestButtonText}
+                {...(Platform.OS === 'android' && { includeFontPadding: false })}
+              >
+                🔄 要求中...
+              </ThemedText>
+            </>
+          ) : (
+            <ThemedText 
+              style={styles.requestButtonText}
+              {...(Platform.OS === 'android' && { includeFontPadding: false })}
+            >
+              eKYCを体験する
+            </ThemedText>
+          )}
+        </TouchableOpacity>
+
+        {/* 미국 인증 버튼 prod */}
         <TouchableOpacity
           style={[
             styles.requestButton,
-            styles.usButton,
+            styles.usProductButton,
+            isLoadingUSProduct && styles.requestButtonDisabled,
+          ]}
+          onPress={handleRequestUSProductToken}
+          disabled={isLoadingUSProduct}
+        >
+          {isLoadingUSProduct ? (
+            <>
+              <ActivityIndicator size="large" color="#fff" style={{ marginRight: 16 }} />
+              <ThemedText 
+                style={styles.requestButtonText}
+                {...(Platform.OS === 'android' && { includeFontPadding: false })}
+              >
+                🔄 REQUESTING...
+              </ThemedText>
+            </>
+          ) : (
+            <ThemedText 
+              style={styles.requestButtonText}
+              {...(Platform.OS === 'android' && { includeFontPadding: false })}
+            >
+              TRY US IDV
+            </ThemedText>
+          )}
+        </TouchableOpacity>
+
+        {/* 체험하기 버튼 (버튼 색깔을 연회색으로 변경) */}
+        <TouchableOpacity
+          style={[
+            styles.requestButton,
+            {
+              backgroundColor: '#D3D3D3', // 연회색(LightGray)
+            },
             isLoadingUS && styles.requestButtonDisabled,
           ]}
           onPress={handleRequestUSToken}
@@ -406,52 +464,6 @@ export default function HomeScreen() {
             >
               체험하기
             </ThemedText>
-          )}
-        </TouchableOpacity>
-
-        {/* 미국 인증 버튼 prod */}
-        <TouchableOpacity
-          style={[
-            styles.requestButton,
-            styles.usButton,
-            isLoadingUSProduct && styles.requestButtonDisabled,
-          ]}
-          onPress={handleRequestUSProductToken}
-          disabled={isLoadingUSProduct}
-        >
-          {isLoadingUSProduct ? (
-            <>
-              <ActivityIndicator size="large" color="#fff" style={{ marginRight: 16 }} />
-              <ThemedText 
-                style={styles.requestButtonText}
-                {...(Platform.OS === 'android' && { includeFontPadding: false })}
-              >
-                🔄 request...
-              </ThemedText>
-            </>
-          ) : (
-            <ThemedText 
-              style={styles.requestButtonText}
-              {...(Platform.OS === 'android' && { includeFontPadding: false })}
-            >
-              US Verification
-            </ThemedText>
-          )}
-        </TouchableOpacity>
-
-        {/* 일본 인증 버튼 */}
-        <TouchableOpacity
-          style={[styles.requestButton, styles.jpButton, isLoadingJP && styles.requestButtonDisabled]}
-          onPress={handleRequestJPToken}
-          disabled={isLoadingJP}
-        >
-          {isLoadingJP ? (
-            <>
-              <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />
-              <ThemedText style={styles.requestButtonText}>🔄 request...</ThemedText>
-            </>
-          ) : (
-            <ThemedText style={styles.requestButtonText}>JP Verification</ThemedText>
           )}
         </TouchableOpacity>
 
@@ -508,30 +520,31 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#fff' 
+    backgroundColor: '#f5f7fa' 
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 40, // 하단 여백 추가
+    paddingBottom: 40,
   },
   placeholder: {
     alignItems: 'center',
     justifyContent: 'center',
     padding: 32,
-    backgroundColor: '#fff',
-    minHeight: '100%', // 최소 높이 설정
+    backgroundColor: '#f5f7fa',
+    minHeight: '100%',
   },
   placeholderText: {
-    fontSize: 32,
-    color: '#333',
+    fontSize: 36,
+    color: '#1a1a1a',
     textAlign: 'center',
-    lineHeight: 44,
-    fontWeight: 'bold',
-    marginBottom: 40,
+    lineHeight: 48,
+    fontWeight: '700',
+    marginBottom: 48,
     paddingTop: Platform.OS === 'android' ? 4 : 0,
+    letterSpacing: -0.5,
   },
   statusContainer: {
     marginTop: 20,
@@ -664,36 +677,48 @@ const styles = StyleSheet.create({
            lineHeight: 14,
          },
          requestButton: {
-           marginTop: 32,
+           marginTop: 20,
            backgroundColor: '#007AFF',
            paddingTop: Platform.OS === 'android' ? 28 : 24,
            paddingBottom: Platform.OS === 'android' ? 28 : 24,
            paddingHorizontal: 32,
-           borderRadius: 16,
+           borderRadius: 20,
            alignItems: 'center',
            justifyContent: 'center',
            width: '100%',
            minHeight: 100,
+           shadowColor: '#000',
+           shadowOffset: {
+             width: 0,
+             height: 4,
+           },
+           shadowOpacity: 0.15,
+           shadowRadius: 8,
+           elevation: 6,
          },
          requestButtonDisabled: {
-           backgroundColor: '#999',
            opacity: 0.6,
          },
          requestButtonText: {
            color: '#fff',
            fontSize: 32,
-           fontWeight: 'bold',
+           fontWeight: '700',
            textAlign: 'center',
            lineHeight: 44,
            paddingTop: Platform.OS === 'android' ? 4 : 0,
+           letterSpacing: 0.5,
          },
          usButton: {
            backgroundColor: '#FF6B35',
            marginTop: 24,
          },
+         usProductButton: {
+           backgroundColor: '#4A90E2',
+           marginTop: 20,
+         },
          jpButton: {
            backgroundColor: '#BC002D',
-           marginTop: 12,
+           marginTop: 20,
          },
          userIdInputContainer: {
            marginTop: 32,
@@ -701,25 +726,34 @@ const styles = StyleSheet.create({
          },
          userIdInputLabel: {
            fontSize: 28,
-           color: '#333',
-           fontWeight: 'bold',
+           color: '#1a1a1a',
+           fontWeight: '700',
            marginBottom: 16,
            lineHeight: 38,
            paddingTop: Platform.OS === 'android' ? 4 : 0,
+           letterSpacing: -0.3,
          },
          userIdInput: {
            backgroundColor: '#fff',
            borderWidth: 2,
-           borderColor: '#ddd',
-           borderRadius: 12,
+           borderColor: '#e1e8ed',
+           borderRadius: 16,
            paddingHorizontal: 20,
            paddingTop: Platform.OS === 'android' ? 20 : 18,
            paddingBottom: Platform.OS === 'android' ? 20 : 18,
            fontSize: 24,
-           color: '#333',
+           color: '#1a1a1a',
            width: '100%',
            minHeight: 64,
            lineHeight: 32,
+           shadowColor: '#000',
+           shadowOffset: {
+             width: 0,
+             height: 2,
+           },
+           shadowOpacity: 0.05,
+           shadowRadius: 4,
+           elevation: 2,
            ...(Platform.OS === 'android' && { 
              textAlignVertical: 'center',
              includeFontPadding: false,
