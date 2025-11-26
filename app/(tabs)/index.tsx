@@ -1,18 +1,20 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { USER_CONFIG, updateUserId } from '@/utils/tokenConfig';
+import { updateUserId } from '@/utils/tokenConfig';
 import { useGlobalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function HomeScreen() {
   const [receivedToken, setReceivedToken] = useState<string | null>(null);
   const [receivedKey, setReceivedKey] = useState<string | null>(null);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [userIdInput, setUserIdInput] = useState<string>(USER_CONFIG.userId);
+  // const [userIdInput, setUserIdInput] = useState<string>(USER_CONFIG.userId);
+  const [userIdInput, setUserIdInput] = useState<string>('');
   const [isLoadingUS, setIsLoadingUS] = useState<boolean>(false);
   const [isLoadingUSProduct, setIsLoadingUSProduct] = useState<boolean>(false);
   const [isLoadingJP, setIsLoadingJP] = useState<boolean>(false);
@@ -35,53 +37,103 @@ export default function HomeScreen() {
     console.log(logMessage);
   };
 
-  // 토큰 요청 함수
-  const handleRequestToken = async () => {
-    setIsLoading(true);
-    addDebugLog('🌐 토큰 요청 시작...');
-    
-    try {
-      const response = await fetch('http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com/link_token', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      addDebugLog('✅ 서버 응답 수신됨');
-      
-      if (data.start_idv_uri) {
-        addDebugLog('🔗 브라우저 열기: ' + data.start_idv_uri);
-        
-        // 브라우저로 URL 열기
-        const result = await WebBrowser.openBrowserAsync(data.start_idv_uri, {
-          presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
-        });
-        
-        if (result.type === 'dismiss') {
-          addDebugLog('📱 브라우저가 닫혔습니다');
-        }
-      } else {
-        addDebugLog('❌ 응답에 start_idv_uri이 없습니다');
-        Alert.alert('오류', '서버 응답에 start_idv_uri이 포함되어 있지 않습니다.');
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-      addDebugLog('❌ 토큰 요청 실패: ' + errorMessage);
-      Alert.alert(
-        '요청 실패',
-        `토큰을 요청하는 중 오류가 발생했습니다:\n${errorMessage}`,
-        [{ text: '확인' }]
-      );
-    } finally {
-      setIsLoading(false);
+  // 문자열을 Base64Url로 인코딩하는 함수
+  function encodeBase64Url(input: string): string {
+    const utf8Bytes = typeof TextEncoder !== "undefined"
+      ? new TextEncoder().encode(input)
+      : Buffer.from(input, "utf-8");
+    // base64 인코딩
+    let base64 = '';
+    if (typeof btoa !== "undefined") {
+      // 브라우저 환경
+      base64 = btoa(String.fromCharCode(...(utf8Bytes as Uint8Array)));
+    } else if (typeof Buffer !== "undefined") {
+      // Node & RN 환경
+      base64 = Buffer.from(utf8Bytes).toString("base64");
+    } else {
+      throw new Error("No base64 encoding available");
     }
-  };
+    // Base64Url로 변환 ('+', '/' → '-', '_', '=' 제거)
+    return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  // 아래는 참고용 Base64Url 디코딩 함수
+  /*
+  function decodeBase64Url(base64Url: string): string {
+    // base64url → base64 변환
+    let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    // '=' padding 추가
+    while (base64.length % 4 !== 0) {
+      base64 += "=";
+    }
+    let binaryStr = "";
+    if (typeof atob !== "undefined") {
+      // 브라우저 환경
+      binaryStr = atob(base64);
+    } else if (typeof Buffer !== "undefined") {
+      // Node & RN 환경
+      binaryStr = Buffer.from(base64, "base64").toString("binary");
+    } else {
+      throw new Error("No base64 decoding available");
+    }
+    // 바이너리 → UTF-8 문자열
+    if (typeof TextDecoder !== "undefined") {
+      const bytes = new Uint8Array(Array.from(binaryStr).map(char => char.charCodeAt(0)));
+      return new TextDecoder().decode(bytes);
+    } else {
+      // Fallback (정확하지 않을 수 있음)
+      return decodeURIComponent(escape(binaryStr));
+    }
+  }
+  */
+
+  // 토큰 요청 함수
+  // const handleRequestToken = async () => {
+  //   setIsLoading(true);
+  //   addDebugLog('🌐 토큰 요청 시작...');
+    
+  //   try {
+  //     const response = await fetch('http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com/link_token', {
+  //       method: 'GET',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! status: ${response.status}`);
+  //     }
+
+  //     const data = await response.json();
+  //     addDebugLog('✅ 서버 응답 수신됨');
+      
+  //     if (data.start_idv_uri) {
+  //       addDebugLog('🔗 브라우저 열기: ' + data.start_idv_uri);
+        
+  //       // 브라우저로 URL 열기
+  //       const result = await WebBrowser.openBrowserAsync(data.start_idv_uri, {
+  //         presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+  //       });
+        
+  //       if (result.type === 'dismiss') {
+  //         addDebugLog('📱 브라우저가 닫혔습니다');
+  //       }
+  //     } else {
+  //       addDebugLog('❌ 응답에 start_idv_uri이 없습니다');
+  //       Alert.alert('오류', '서버 응답에 start_idv_uri이 포함되어 있지 않습니다.');
+  //     }
+  //   } catch (error) {
+  //     const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+  //     addDebugLog('❌ 토큰 요청 실패: ' + errorMessage);
+  //     Alert.alert(
+  //       '요청 실패',
+  //       `토큰을 요청하는 중 오류가 발생했습니다:\n${errorMessage}`,
+  //       [{ text: '확인' }]
+  //     );
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   // 미국 인증 요청 함수
   const handleRequestUSToken = async () => {
@@ -98,7 +150,12 @@ export default function HomeScreen() {
     addDebugLog('🇺🇸 미국 인증 요청 시작...');
     
     try {
-      const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com/us/start?user_id=${userIdInput.trim()}`;
+      const uuid = uuidv4();
+      addDebugLog('🆔 생성된 UUID: ' + uuid);
+      
+      // const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com/us/start?user_id=${userIdInput.trim()}`;
+      const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com/start?user_id=${uuid}&email=${userIdInput.trim()}&callback_url=idvexpo://verify&country=us`;
+      // const url = `http://172.30.1.42:4300/start?user_id=${uuid}&email=${userIdInput.trim()}&callback_url=idvexpo://verify&country=us`;
       addDebugLog('🌐 요청 URL: ' + url);
       
       const response = await fetch(url, {
@@ -158,7 +215,12 @@ export default function HomeScreen() {
     addDebugLog('🇺🇸 미국 인증 요청 시작 (Prod)...');
     
     try {
-      const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com:8080/us/start?user_id=${userIdInput.trim()}`;
+      const uuid = uuidv4();
+      addDebugLog('🆔 생성된 UUID: ' + uuid);
+      // const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com:8080/us/start?user_id=${userIdInput.trim()}`;
+      
+      const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com:8080/start?user_id=${uuid}&email=${userIdInput.trim()}&callback_url=idvexpo://verify&country=us`;
+      // const url = `http://172.30.1.42:4300/start?user_id=${uuid}&email=${userIdInput.trim()}&callback_url=idvexpo://verify&country=us`;
       addDebugLog('🌐 요청 URL: ' + url);
       
       const response = await fetch(url, {
@@ -218,9 +280,12 @@ export default function HomeScreen() {
     addDebugLog('🇯🇵 일본 인증 요청 시작...');
     
     try {
-      const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com:8080/start?user_id=${userIdInput.trim()}&email=chanhee@tomoarrow.com&callback_url=idvexpo://verify&country=jp`;
-      // const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com/start?user_id=${userIdInput.trim()}&email=chanhee@tomoarrow.com&callback_url=idvexpo://verify&country=jp`;
-      // const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com/start?user_id=${userIdInput.trim()}`;
+      const encodedUserId = "0" + encodeBase64Url(userIdInput.trim());
+      // const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com:8080/start?user_id=${userIdInput.trim()}&email=chanhee@tomoarrow.com&callback_url=idvexpo://verify&country=jp`;
+      // const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com:8080/jp/start?user_id=${userIdInput.trim()};
+
+      const url = `http://ec2-3-36-65-239.ap-northeast-2.compute.amazonaws.com/start?user_id=${encodedUserId}&email=${userIdInput.trim()}&callback_url=idvexpo://verify&country=jp`;
+      // const url = `http://172.30.1.42:4300/start?user_id=${encodedUserId}&email=${userIdInput.trim()}&callback_url=idvexpo://verify&country=jp`;
       addDebugLog('🌐 요청 URL: ' + url);
       
       const response = await fetch(url, {
@@ -339,7 +404,7 @@ export default function HomeScreen() {
             style={styles.userIdInputLabel}
             {...(Platform.OS === 'android' && { includeFontPadding: false })}
           >
-            👤 User ID
+            📧 Email
           </ThemedText>
           <TextInput
             style={styles.userIdInput}
@@ -353,7 +418,7 @@ export default function HomeScreen() {
                 // addDebugLog('👤 User ID 변경: ' + text.trim());
               }
             }}
-            placeholder="User ID를 입력하세요"
+            placeholder="Enter email"
             placeholderTextColor="#999"
             autoCapitalize="none"
             autoCorrect={false}
@@ -701,7 +766,7 @@ const styles = StyleSheet.create({
          },
          requestButtonText: {
            color: '#fff',
-           fontSize: 32,
+           fontSize: 30,
            fontWeight: '700',
            textAlign: 'center',
            lineHeight: 44,

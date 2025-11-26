@@ -1,3 +1,6 @@
+// React Native에서 crypto.getRandomValues() 폴리필 추가 (uuid 라이브러리 지원)
+import 'react-native-get-random-values';
+
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useGlobalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';

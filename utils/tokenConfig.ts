@@ -10,7 +10,7 @@ export const USER_CONFIG = {
 // USER_CONFIG 업데이트 함수
 export function updateUserId(newUserId: string): void {
   USER_CONFIG.userId = newUserId;
-  console.log('✅ USER_CONFIG.userId 업데이트됨:', newUserId);
+  // console.log('✅ USER_CONFIG.userId 업데이트됨:', newUserId);
 }
 
 // 서버에서 Base64로 인코딩된 Public Key를 받아서 사용
