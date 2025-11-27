@@ -2,7 +2,8 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { updateUserId } from '@/utils/tokenConfig';
 import { useGlobalSearchParams } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
+// import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -175,14 +176,23 @@ export default function HomeScreen() {
       if (data.start_idv_uri) {
         addDebugLog('🔗 브라우저 열기: ' + data.start_idv_uri);
         
-        // 브라우저로 URL 열기
-        const result = await WebBrowser.openBrowserAsync(data.start_idv_uri, {
-          presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
-        });
-        
-        if (result.type === 'dismiss') {
-          addDebugLog('📱 브라우저가 닫혔습니다');
+        // 외부 브라우저로 URL 열기 (iOS Safari, Android Chrome)
+        try {
+          await Linking.openURL(data.start_idv_uri);
+          addDebugLog('✅ 외부 브라우저로 열기 성공');
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+          addDebugLog('❌ 브라우저 열기 실패: ' + errorMessage);
+          Alert.alert('오류', `브라우저를 열 수 없습니다:\n${errorMessage}`);
         }
+        
+        // 기존 WebBrowser 코드 (주석처리)
+        // const result = await WebBrowser.openBrowserAsync(data.start_idv_uri, {
+        //   presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+        // });
+        // if (result.type === 'dismiss') {
+        //   addDebugLog('📱 브라우저가 닫혔습니다');
+        // }
       } else {
         addDebugLog('❌ 응답에 start_idv_uri이 없습니다');
         Alert.alert('오류', '서버 응답에 start_idv_uri이 포함되어 있지 않습니다.');
@@ -240,14 +250,23 @@ export default function HomeScreen() {
       if (data.start_idv_uri) {
         addDebugLog('🔗 브라우저 열기: ' + data.start_idv_uri);
         
-        // 브라우저로 URL 열기
-        const result = await WebBrowser.openBrowserAsync(data.start_idv_uri, {
-          presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
-        });
-        
-        if (result.type === 'dismiss') {
-          addDebugLog('📱 브라우저가 닫혔습니다');
+        // 외부 브라우저로 URL 열기 (iOS Safari, Android Chrome)
+        try {
+          await Linking.openURL(data.start_idv_uri);
+          addDebugLog('✅ 외부 브라우저로 열기 성공');
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+          addDebugLog('❌ 브라우저 열기 실패: ' + errorMessage);
+          Alert.alert('오류', `브라우저를 열 수 없습니다:\n${errorMessage}`);
         }
+        
+        // 기존 WebBrowser 코드 (주석처리)
+        // const result = await WebBrowser.openBrowserAsync(data.start_idv_uri, {
+        //   presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+        // });
+        // if (result.type === 'dismiss') {
+        //   addDebugLog('📱 브라우저가 닫혔습니다');
+        // }
       } else {
         addDebugLog('❌ 응답에 start_idv_uri이 없습니다');
         Alert.alert('오류', '서버 응답에 start_idv_uri이 포함되어 있지 않습니다.');
@@ -305,14 +324,23 @@ export default function HomeScreen() {
       if (data.start_idv_uri) {
         addDebugLog('🔗 브라우저 열기: ' + data.start_idv_uri);
         
-        // 브라우저로 URL 열기
-        const result = await WebBrowser.openBrowserAsync(data.start_idv_uri, {
-          presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
-        });
-        
-        if (result.type === 'dismiss') {
-          addDebugLog('📱 브라우저가 닫혔습니다');
+        // 외부 브라우저로 URL 열기 (iOS Safari, Android Chrome)
+        try {
+          await Linking.openURL(data.start_idv_uri);
+          addDebugLog('✅ 외부 브라우저로 열기 성공');
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+          addDebugLog('❌ 브라우저 열기 실패: ' + errorMessage);
+          Alert.alert('오류', `브라우저를 열 수 없습니다:\n${errorMessage}`);
         }
+        
+        // 기존 WebBrowser 코드 (주석처리)
+        // const result = await WebBrowser.openBrowserAsync(data.start_idv_uri, {
+        //   presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+        // });
+        // if (result.type === 'dismiss') {
+        //   addDebugLog('📱 브라우저가 닫혔습니다');
+        // }
       } else {
         addDebugLog('❌ 응답에 start_idv_uri이 없습니다');
         Alert.alert('오류', '서버 응답에 start_idv_uri이 포함되어 있지 않습니다.');
@@ -346,11 +374,11 @@ export default function HomeScreen() {
       //   : `토큰이 성공적으로 받아졌습니다!\n\n토큰: ${verifiedToken.substring(0, 50)}...`;
 
       // 간단한 팝업 메시지
-      Alert.alert(
-        '인증 완료',
-        '인증 token이 발급 되었습니다.',
-        [{ text: '확인', style: 'default' }]
-      );
+      // Alert.alert(
+      //   '인증 완료',
+      //   '인증 token이 발급 되었습니다.',
+      //   [{ text: '확인', style: 'default' }]
+      // );
     }
   }, [verifiedToken, key, receivedToken]);
 
@@ -444,6 +472,39 @@ export default function HomeScreen() {
           )}
         </TouchableOpacity> */}
 
+        {/* 체험하기 버튼 (버튼 색깔을 연회색으로 변경) */}
+        <TouchableOpacity
+          style={[
+            styles.requestButton,
+            {
+              // backgroundColor: '#198F3B', // 조금 더 어둡고 흰색이 잘 보이는 그린(Dark Green)
+              backgroundColor: '#800000', // 조금 더 어둡고 흰색이 잘 보이는 그린(Dark Green)
+            },
+            isLoadingUS && styles.requestButtonDisabled,
+          ]}
+          onPress={handleRequestUSToken}
+          disabled={isLoadingUS}
+        >
+          {isLoadingUS ? (
+            <>
+              <ActivityIndicator size="large" color="#fff" style={{ marginRight: 16 }} />
+              <ThemedText 
+                style={styles.requestButtonText}
+                {...(Platform.OS === 'android' && { includeFontPadding: false })}
+              >
+                🔄 요청 중...
+              </ThemedText>
+            </>
+          ) : (
+            <ThemedText 
+              style={styles.requestButtonText}
+              {...(Platform.OS === 'android' && { includeFontPadding: false })}
+            >
+              체험하기
+            </ThemedText>
+          )}
+        </TouchableOpacity>
+
         {/* 일본 인증 버튼 */}
         <TouchableOpacity
           style={[styles.requestButton, styles.jpButton, isLoadingJP && styles.requestButtonDisabled]}
@@ -496,38 +557,6 @@ export default function HomeScreen() {
               {...(Platform.OS === 'android' && { includeFontPadding: false })}
             >
               TRY US IDV
-            </ThemedText>
-          )}
-        </TouchableOpacity>
-
-        {/* 체험하기 버튼 (버튼 색깔을 연회색으로 변경) */}
-        <TouchableOpacity
-          style={[
-            styles.requestButton,
-            {
-              backgroundColor: '#D3D3D3', // 연회색(LightGray)
-            },
-            isLoadingUS && styles.requestButtonDisabled,
-          ]}
-          onPress={handleRequestUSToken}
-          disabled={isLoadingUS}
-        >
-          {isLoadingUS ? (
-            <>
-              <ActivityIndicator size="large" color="#fff" style={{ marginRight: 16 }} />
-              <ThemedText 
-                style={styles.requestButtonText}
-                {...(Platform.OS === 'android' && { includeFontPadding: false })}
-              >
-                🔄 요청 중...
-              </ThemedText>
-            </>
-          ) : (
-            <ThemedText 
-              style={styles.requestButtonText}
-              {...(Platform.OS === 'android' && { includeFontPadding: false })}
-            >
-              체험하기
             </ThemedText>
           )}
         </TouchableOpacity>
@@ -774,15 +803,15 @@ const styles = StyleSheet.create({
            letterSpacing: 0.5,
          },
          usButton: {
-           backgroundColor: '#FF6B35',
+           backgroundColor: '#25C375', // 채도를 높인 선명한 초록색(green)
            marginTop: 24,
          },
          usProductButton: {
-           backgroundColor: '#4A90E2',
+           backgroundColor: '#B7CFE7', // 채도를 20% 더 낮춘 아주 연한 파랑색
            marginTop: 20,
          },
          jpButton: {
-           backgroundColor: '#BC002D',
+           backgroundColor: '#E9C0C9', // 채도를 20% 더 낮춘 아주 연한 분홍색
            marginTop: 20,
          },
          userIdInputContainer: {
